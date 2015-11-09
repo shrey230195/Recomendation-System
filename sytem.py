@@ -75,7 +75,7 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
 	totals={}
 	simSums={}
 	for other in prefs:
-		# don't compare me to myself
+		#don't compare me to myself
 		if other==person: continue
 		sim=similarity(prefs,person,other)
 		# ignore scores of zero or lower
