@@ -1,20 +1,20 @@
-critics={'Lisa Rose': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5,
- 'Just My Luck': 3.0, 'Superman Returns': 3.5, 'You, Me and Dupree': 2.5,
- 'The Night Listener': 3.0},
-'Gene Seymour': {'Lady in the Water': 3.0, 'Snakes on a Plane': 3.5,
- 'Just My Luck': 1.5, 'Superman Returns': 5.0, 'The Night Listener': 3.0,
- 'You, Me and Dupree': 3.5},
-'Michael Phillips': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.0,
- 'Superman Returns': 3.5, 'The Night Listener': 4.0},
-'Claudia Puig': {'Snakes on a Plane': 3.5, 'Just My Luck': 3.0,
- 'The Night Listener': 4.5, 'Superman Returns': 4.0,
- 'You, Me and Dupree': 2.5},
-'Mick LaSalle': {'Lady in the Water': 3.0, 'Snakes on a Plane': 4.0,
- 'Just My Luck': 2.0, 'Superman Returns': 3.0, 'The Night Listener': 3.0,
- 'You, Me and Dupree': 2.0},
-'Jack Matthews': {'Lady in the Water': 3.0, 'Snakes on a Plane': 4.0,
- 'The Night Listener': 3.0, 'Superman Returns': 5.0, 'You, Me and Dupree': 3.5},
-'Toby': {'Snakes on a Plane':4.5,'You, Me and Dupree':1.0,'Superman Returns':4.0}}
+critics={'Shrey': {'The Dark Knight': 2.5, 'Fight Club': 3.5,
+ 'Babadook': 3.0, 'Superman Returns': 3.5, 'The Prestige': 2.5,
+ 'A Beautiful Mind': 3.0},
+'Rishabh': {'The Dark Knight': 3.0, 'Fight Club': 3.5,
+ 'Babadook': 1.5, 'Superman Returns': 5.0, 'A Beautiful Mind': 3.0,
+ 'The Prestige': 3.5},
+'Shubham': {'The Dark Knight': 2.5, 'Fight Club': 3.0,
+ 'Superman Returns': 3.5, 'A Beautiful Mind': 4.0},
+'Shivam': {'Fight Club': 3.5, 'Babadook': 3.0,
+ 'A Beautiful Mind': 4.5, 'Superman Returns': 4.0,
+ 'The Prestige': 2.5},
+'Kshitij': {'The Dark Knight': 3.0, 'Fight Club': 4.0,
+ 'Babadook': 2.0, 'Superman Returns': 3.0, 'A Beautiful Mind': 3.0,
+ 'The Prestige': 2.0},
+'Rishu': {'The Dark Knight': 3.0, 'Fight Club': 4.0,
+ 'A Beautiful Mind': 3.0, 'Superman Returns': 5.0, 'The Prestige': 3.5},
+'Pranay': {'Fight Club':4.5,'The Prestige':1.0,'Superman Returns':4.0}}
 
 
 
@@ -67,7 +67,7 @@ def topMatches(prefs,person,n=5,similarity=sim_pearson):
 	scores.sort( )
 	scores.reverse( )
 	return scores[0:n]
-#print topMatches(critics,'Gene Seymour')
+#print topMatches(critics,'Rishabh')
 
 # Gets recommendations for a person by using a weighted average
 # of every other user's rankings
@@ -75,7 +75,7 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
 	totals={}
 	simSums={}
 	for other in prefs:
-		#don't compare me to myself
+		# don't compare me to myself
 		if other==person: continue
 		sim=similarity(prefs,person,other)
 		# ignore scores of zero or lower
@@ -96,12 +96,53 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
 	rankings.reverse( )
 	return rankings
 
-#print getRecommendations(critics,'Lisa Rose')
+#print getRecommendations(critics,'Shrey')
 def transformPrefs(prefs):
 	 result={}
 	 for person in prefs:
 		 for item in prefs[person]:
 		 	result.setdefault(item,{})
-		 # Flip item and person
-		 result[item][person]=prefs[person][item]
+			# Flip item and person
+			result[item][person]=prefs[person][item]
+	 
 	 return result
+	 
+
+#itemslist=transformPrefs(critics)
+
+
+def calculateSimiliarity(prefs,n=10):
+	
+	result={}
+	itemslist=transformPrefs(prefs)
+	for items in itemslist:
+		similiarityScore= topMatches(itemslist,items,n=n,similarity=sim_distance)
+		result[items]=similiarityScore
+	return result
+#print calculateSimiliarity(critics)
+itemslist=calculateSimiliarity(critics)
+
+def getRecommendedItems(prefs,itemMatch,user):
+	userRatings=prefs[user]
+	scores={}
+	totalSim={}
+	# Loop over items rated by this user
+	for (item,rating) in userRatings.items( ):
+	# Loop over items similar to this one
+		for (similarity,item2) in itemMatch[item]:
+		# Ignore if this user has already rated this item
+			if item2 in userRatings: continue
+			# Weighted sum of rating times similarity
+			scores.setdefault(item2,0)
+			scores[item2]+=similarity*rating
+			# Sum of all the similarities
+			totalSim.setdefault(item2,0)
+			totalSim[item2]+=similarity
+	# Divide each total score by total weighting to get an average
+	rankings=[(score/totalSim[item],item) for item,score in scores.items( )]
+	# Return the rankings from highest to lowest
+	rankings.sort( )
+	rankings.reverse( )
+	return rankings
+#print getRecommendedItems(critics,itemslist,'Pranay')
+
